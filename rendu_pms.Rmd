@@ -1,0 +1,559 @@
+---
+title: "TP Principes et Méthodes Statistiques"
+author: 
+- "Omar BENCHEKROUN"
+- "Mohamed SGHIOUAR IDRISSI"
+- "Andrew MCDONALD"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+\section{1 - Analyse des défauts de cuves}
+
+\subsection*{Question 1}
+
+```{r echo=FALSE}
+attach(mtcars)
+par(mfrow=c(2,3))
+
+cuves0<-read.table("cuves.csv",sep=";",header=T)
+attach(cuves0)
+
+cuve1 <- sort(cuve1[!is.na(cuve1)])
+cuve2 <- sort(cuve2[!is.na(cuve2)])
+cuve3 <- sort(cuve3[!is.na(cuve3)])
+cuves <- list(cuve1, cuve2, cuve3)
+#boucle pour histogramme meme largeur(rouge) et meme effectif(bleu)
+for (i in c(1,2,3)){
+  n<- length(cuves[[i]])
+  k<-round((log(n)/log(2))+1)
+  a0 <- cuves[[i]][1] - 0.025*(cuves[[i]][n]-cuves[[i]][1])
+  ak <- cuves[[i]][n] + 0.025*(cuves[[i]][n]-cuves[[i]][1])
+  bornes_largeur<- seq(a0, ak, (ak-a0)/k)
+  hist(cuves[[i]], prob=T, breaks=bornes_largeur, main=paste("cuve", i), col="red", xlab = "profondeur cuve (même largeur)")
+  cat("\n")
+  
+  b<-seq(n/k,n-(n/k),n/k)
+  breaks <- c(a0, quantile(cuves[[i]],seq(1,k-1)/k),ak)
+  bornes_effectif<-c(a0, (cuves[[i]][b]+cuves[[i]][b-1])/2, ak)
+  hist(cuves[[i]], prob=T, breaks=bornes_effectif, main=paste("cuve", i), col="blue", xlab = "profondeur cuve (même effectif)")
+  cat("\n")
+}
+```
+
+
+Les indicateurs de la cuve1:
+
+```{r echo=FALSE}
+#indicateurs des differentes cuves
+
+summary(cuve1)
+cat('variance de la cuve 1 est: ', var(cuve1), '\n')
+cat("l'écart-type de la cuve 1 est: ", sd(cuve1), '\n')
+cat("le coefficient de variation empirique de la cuve1 est" ,sqrt((length(cuve1)-1)/length(cuve1))*sd(cuve1)/mean(cuve1), "\n")
+cat("\n")
+```
+Les indicateurs de la cuve2:
+
+```{r echo=FALSE}
+summary(cuve2)
+cat('variance de la cuve 2 est: ', var(cuve2), '\n')
+cat("l'écart-type de la cuve 2 est: ", sd(cuve2), '\n')
+cat("le coefficient de variation empirique de la cuve2 est" ,sqrt((length(cuve2)-1)/length(cuve2))*sd(cuve2)/mean(cuve2), "\n")
+cat("\n")
+```
+Les indicateurs de la cuve3:
+
+```{r echo=FALSE}
+summary(cuve3)
+cat('variance de la cuve 3 est: ', var(cuve3), '\n')
+cat("l'écart-type de la cuve 3 est: ", sd(cuve3), '\n')
+cat("le coefficient de variation empirique de la cuve3 est" ,sqrt((length(cuve3)-1)/length(cuve3))*sd(cuve3)/mean(cuve3), "\n")
+cat("\n")
+```
+On remarque d'après les histogrammes que les données des cuves 1 et 2 semblent suivre la même loi, cependant les données de la cuve 3 elles, suivent une loi différente des deux premières cuves.
+
+\subsection*{Question 2}
+La fonction de répartition :
+\begin{equation*}
+F_{X}(x) = \int_{- \infty}^{x}f(t) dt = 
+\left\{
+    \begin{array}{ll}
+        \int_{2}^{x} \frac{a 2^a}{t^{1+a}} dt & \mbox{si } x > 2 \\
+        0 & \mbox{sinon}
+    \end{array}
+\right.    
+\\
+\end{equation*}
+et :
+\begin{equation*}
+\begin{aligned}
+\int_{2}^{x}\frac{a 2^a}{t^{1+a}} dt & = a 2^a \int_{2}^{x} t^{-1-a} dt\\
+& = a 2^a \bigg[ \frac{t^{-a}}{-a} \bigg]^{x}_{2}  \\
+& = 1 - \bigg(\frac{2}{x}\bigg)^{a}
+\end{aligned}
+\end{equation*}
+d'où :
+\begin{equation*}
+F_{X}(x) = 
+\left\{
+    \begin{array}{ll}
+        1 - \big(\frac{2}{x}\big)^{a} & \mbox{si } x > 2 \\
+        0 & \mbox{sinon}
+    \end{array}
+\right.    
+\end{equation*}
+L'espérance de X :
+Si $a>1$ alors X admet une espérance finie et :
+\begin{equation*}
+\begin{aligned}
+E[X] &= \int_{\mathbb{R}} x f(x) dx
+&= \int_2^{+\infty}x \frac{a 2^a}{x^{1+a}} dx
+&= \frac{2a}{a-1}
+\end{aligned}
+\end{equation*}
+La variance de X :
+Si $a>2$ alors X admet une variance finie
+\begin{equation*}
+\begin{aligned}
+V(X) &= E[X^2]-E[X]^2 \\
+&= \int_{\mathbb{R}}x^2 f(x) dx- E[X]^2 \\
+&= \frac{4a}{a-2} - \bigg(\frac{2a}{a-1}\bigg)^2
+\end{aligned}
+\end{equation*}
+
+
+
+
+\subsection*{Question 3}
+Pour $a$ et $b$ dans $\bar{\mathbb{R}}$ :
+\begin{equation*}
+\begin{aligned}
+F_Y(x) &= P(ln(\frac{X}{2})<x)\\
+&= P(X<2e^x)\\
+&= F_X(2e^x)\\
+&= 
+\left\{
+    \begin{array}{ll}
+        1-e^{-ax} & \mbox{si } x > 0 \\
+        0 & \mbox{sinon}
+    \end{array}
+\right.
+\end{aligned}
+\end{equation*}
+d'où $Y$ est de densité :
+\begin{equation*}
+f_Y(x) = F_Y'(x) = ae^{-ax}  1\!\!1_{[0, +\infty[}
+\end{equation*}
+
+
+
+
+
+
+\subsection*{Question 4}
+
+On a $Y \sim \mbox{exp}(a)$. 
+Pour $$
+Y_i, \mbox{ } i \in [1,n] 
+$$ On a $$\sum_{i=1}^n Y_i \sim \Gamma(n,a)
+$$ Et donc $2a \sum_{i=1}^n Y_i \sim \Gamma(n,\frac{1}{2})$. 
+\noindent Notre fonction pivotale est donc $2a\sum_{i=1}^n Y_i$.
+\noindent On pose 
+\begin{equation*}
+\begin{aligned}
+\left\{
+    \begin{array}{ll}
+        P(2a\sum_{i=1}^n Y_i <a_1) = \frac{\alpha}{2} \\
+        P(2a\sum_{i=1}^n Y_i <a_2) = 1-\frac{\alpha}{2}
+    \end{array}
+\right.
+\end{aligned}
+\end{equation*}
+D'où d'abord:
+\begin{equation*}
+\begin{aligned}
+\left\{
+    \begin{array}{ll}
+        a_1 = F_{\chi_{2n}^2 }^{-1} (\frac{\alpha}{2}) \\
+        a_2 = F_{\chi_{2n}^2 }^{-1} (1-\frac{\alpha}{2})
+    \end{array}
+\right.
+\end{aligned}
+\end{equation*}
+Et d'autre part:
+\begin{equation*}
+\begin{aligned}
+& P(a_1<2a\sum_{i=1}^n Y_i<a_2) = 1-\alpha \\
+\Rightarrow \mbox{  } & P(\frac{a_1}{2\sum_{i=1}^n Y_i} < a < \frac{a_2}{2\sum_{i=1}^n Y_i}) = 1-\alpha
+\Rightarrow \mbox{  } & P(\frac{F_{\chi_{2n}^2 }^{-1} (\frac{\alpha}{2})}{2\sum_{i=1}^n Y_i} < a < \frac{F_{\chi_{2n}^2 }^{-1} (1-\frac{\alpha}{2})}{2\sum_{i=1}^n Y_i}) = 1-\alpha
+\end{aligned}
+\end{equation*}
+On déduit l'intervalle de confiance suivant : 
+\begin{equation*}
+IC(\alpha) = \Bigg[\frac{F_{\chi_{2n}^2 }^{-1} (\frac{\alpha}{2})}{2n \bar{Y_n}}, \frac{F_{\chi_{2n}^2 }^{-1} (1-\frac{\alpha}{2})}{2n \bar{Y_n}}\Bigg]
+\end{equation*}
+
+
+
+
+
+\subsection*{Question 5}
+On utilisera les trois méthodes vues en cours : 
+
+\subsubsection*{Graphe de probabilités :}
+On a :
+\begin{equation*}
+    \log (1-F_X(x)) = -a \log(x) + a \log(2)
+\end{equation*}
+Donc notre graphe de probabilité est le nuage de points  $$(log(x_i^*), \log(1-\frac{i}{n})), i \in \{ 1, \dots, n  \}$$ et dont la pente correspond à $-a$.
+
+```{r echo=FALSE}
+for (i in c(1,2,3)){
+  n<- length(cuves[[i]])
+  plot(log(cuves[[i]][1:n-1]), log(1-(seq(1:(n-1))/n)), xlab = paste("log(cuves[[", i, "]][1:n-1])"), main=paste("cuve", i))
+  reg<-lm(log(1-(seq(1:(n-1))/n))~ log(cuves[[i]][1:(n-1)]))
+  abline(reg)
+}
+```
+
+On remarque ici que le graphe de probabilités nous donne des points alignés pour les cuves 1 et 2, mais pas pour la cuve 3 ainsi on peut en déduire que la loi Pa(a,2) est pertinente pour les données des deux premières cuves mais pas de la troisième. Cela rejoint donc notre hypothèses sur les histogrammes des trois cuves.
+On ne calcule donc la valeur de a que pour les cuves 1 et 2.
+
+```{r echo=FALSE}
+for (i in c(1,2)){
+  n<- length(cuves[[i]])
+  reg<-lm(log(1-(seq(1:(n-1))/n))~ log(cuves[[i]][1:(n-1)]))
+  a_reg <- -reg$coefficients[2]
+  cat(a_reg, "\n")}
+```
+
+\subsubsection*{Estimateur de moments EMM :}
+La méthode consiste à approcher l'espérance (théorique) de la loi $Pa(a,2)$ par la moyenne empirique de l'échantillon:
+\begin{equation*}
+    E[X] = \frac{2a}{a-1} = \bar{X_n}
+\end{equation*}
+Ce qui nous donne notre estimateur EMM:
+\begin{equation*}
+    \hat{a}_n = \frac{\bar{X_n}}{\bar{X_n}-2}
+\end{equation*}
+En calculant les estimations pour chacune des 3 cuves :
+```{r echo=FALSE}
+cat("Estimateurs des moments", "\n")
+for (i in c(1,2)){
+  a_emm <- mean(cuves[[i]])/(mean(cuves[[i]])-2)
+  cat("cuve", i, " : ", a_emm, "\n")
+}
+```
+
+\subsubsection*{Estimateur de maximum de vraisemblance EMV :}
+Pour une observation $(x_1, x_2, \dots, x_n)$ quelconque, on a :
+\begin{equation*}
+\begin{aligned}
+\log {\cal{L}} (x_1, x_2, \dots, x_n, a) &= \sum_{i=1}^{n} \log f(x_i) \\
+&= \sum_{i=1}^{n} \log \frac{a2^a}{x_i^{1+a}} \\
+&= n \log(a) + na\log(2) - (1+a)\sum_{i=1}^{n} \log(x_i)
+\end{aligned}
+\end{equation*}
+\noindent dont la dérivée s'annule quand :
+\begin{equation*}
+    a = \frac{1}{\frac{1}{n}\sum_{i=1}^{n} \log(\frac{x_i}{2})}
+\end{equation*}
+Ce qui nous donne notre estimateur EMV:
+\begin{equation*}
+\Tilde{a}_n =  \frac{1}{\frac{1}{n}\sum_{i=1}^{n} \log(\frac{X_i}{2})} = \frac{1}{\bar{Y}_n}
+\end{equation*}
+```{r echo=FALSE}
+cat("Estimateurs de maximum de vraisemblance", "\n")
+for (i in c(1,2)){
+  a_emv <- 1/(mean(log(cuves[[i]]/2)))
+  cat("cuve", i, " : ", a_emv, "\n")
+}
+```
+
+
+
+\section{2 - Vérifications expérimentales à base de simulations}
+
+\subsection*{Question 1}
+Pour simuler un échantillon de taille n de la loi $Pa(a, b)$, on peut simuler d'abord un échantillon  de loi $exp(a)$, et utiliser le fait que si $X \sim Pa(a, b)$ et si on pose :
+\begin{equation*}
+Y_b = \ln(\frac{X}{b})
+\end{equation*}
+\noindent Alors par des calculs similaires à ce qu'on a fait précédemment, on a $Y \sim exp(a)$.
+\newline
+\mbox{\it{Synthèse : }} 
+On simule un premier échantillon $y$ suivant la loi $exp(a)$, et on calcule $x = 2\exp(y)$ qui est un échantillon qui suit la loi $Pa(a, b)$.
+
+
+
+\subsection*{Question 2}
+Avec $\alpha = 0.05$, on effectue les simulations suivantes :
+
+```{r echo=FALSE}
+experience<-function(m, n, alpha, a){
+  prop <- 0
+  for (i in 1:m){
+    y <- rexp(n, rate=a)
+    a_inf <- qchisq(alpha/2,2*n)/(2*sum(y))
+    a_sup <- qchisq(1-alpha/2,2*n)/(2*sum(y))
+    if ((a>=a_inf) & (a<=a_sup)){
+      prop = prop+1
+    }
+  }
+  cat("Proportion d'intervalles contenant le paramètre", prop/m,?"\n")
+}
+
+for (m in c(100, 500, 1000)){
+  for (n in c(1000, 5000, 10000)){
+    for (a in c(1, 5)){
+      cat("Pour m=", m, "n=", n, "a=", a, " ")
+      experience(m, n, 0.05, a)
+      cat("\n")
+    }
+  }
+}
+
+```
+
+
+
+
+
+\subsection*{Question 3}
+
+```{r echo=FALSE}
+comparaison <- function(m, n, a){
+  emm <- NULL
+  emv <- NULL
+  for (i in 1:m){
+    y <- rexp(n, a)
+    x <- 2*exp(y)
+    a_emm <- mean(x)/(mean(x)-2)
+    emm <- c(emm, a_emm)
+    a_emv <- 1/mean(y)
+    emv <- c(emv, a_emv)
+
+    #reg<-lm(log(1-(seq(1:(n-1))/n))~ log(x[1:(n-1)]))
+    #a_reg <- -reg$coefficients[2]
+    #cat("a_reg", a_reg, "\n")
+  }
+  cat ("biais emm", (2*a/(a-1)) - mean(emm), "\n")
+  cat ("biais emv", (2*a/(a-1)) - mean(emv), "\n")
+  cat ("erreur quadratique emm", var(emm) + ((2*a/(a-1)) - mean(emm))^2, "\n")
+  cat ("erreur quadratique emv", var(emv) + ((2*a/(a-1)) - mean(emv))^2, "\n")
+
+}
+
+comparaison(2, 5000, 3)
+
+```
+
+Conclusion : On remarque ici que le meilleur estimateur est l'estimateur de maximum de vraisemblance, car il a le biais et l'erreur quadratique les moins élevés.
+
+
+
+\subsection*{Question 4}
+On choisit la méthode de l'estimateur de maximum de vraisemblance :
+```{r echo=FALSE}
+cat("\n")
+```
+
+```{r echo=FALSE}
+# on choisit l'EMV
+a = 2
+m = 100
+valeurs_n = seq(100, 20000, 500)
+for (epsilon in c(0.05, 0.1, 0.05)){
+  proportions = NULL
+  for (n in valeurs_n){
+    compteur <- 0
+    for (i in 1:m){
+      echantillon = 2*exp(rexp(n, a))
+      a_emv = n/sum(log(echantillon/2)) 
+      if (abs(a_emv-a)>epsilon){
+        compteur = compteur + 1
+      }
+    }
+    proportions = c(proportions, compteur/m)
+  }
+  plot(valeurs_n, proportions, main=paste("epsilon =", epsilon))
+}
+```
+
+$\Rightarrow$ On conclut la convergence faible de l'estimateur de maximum de vraisemblance.
+
+
+
+
+
+
+\subsection*{Question 5}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+attach(mtcars)
+par(mfrow=c(2,3))
+a = 2
+m = 100
+valeurs_n = c(5, 10, 20, 100, 1000)
+for (n in valeurs_n){
+  emm <- NULL
+  compteur <- 0
+  for (i in 1:m){
+    echantillon = 2*exp(rexp(n, a))
+    a_emm = mean(echantillon)/(mean(echantillon)-2)
+    emm = c(emm, a_emm)
+  }
+  hist(emm, main=paste("n = ", n))
+  plot(sort(emm)[1:m-1], qnorm(seq(1:(m-1))/m), main=paste("n = ", n))
+  reg <- lm(qnorm(seq(1:(m-1))/m) ~ sort(emm)[1:m-1])
+  abline(reg)
+}
+```
+
+$\Rightarrow$ Sur les différents graphes de probabilités,on remarque que plus n est grand, plus les points sont alignés. Aussi les histogrammes se rapprochent de la cloche d'une loi normale centrée en 2, qui est la valeur de a choisie. On conclut que l'estimateur converge asymptotiquement vers la loi normale centrée en a lorsque n tend vers l'infini.
+
+
+
+
+
+
+\section{3 - Comparaison de modèles et certification des cuves}
+
+
+\subsection*{Question 1}
+Pour la cuve 1 :
+Grace au résultats obtenues dans la partie précédente, il semble que la loi  $\mathcal{P}a(a,b)$ soit une bonne approximation. 
+Pour les paramètres de  $\mathcal{P}a(a,2)$ , on va prendre comme dans la partie précédente, b=2 .Quant au paramètre $a$, on peut utiliser l'estimateur de maximum de vraisemblance 
+On modélisera donc les défauts de la cuve 1 par la loi $\mathcal{P}a(3.17,2)$.
+
+
+Pour la cuve 2 :
+Idem pour la cuve 2, $\mathcal{P}a(a,2)$ semble pertinent.
+On estime à l'aide de l'estimateur du maximumu de vraisemblance le paramètre $a$.
+On modélisera donc les défauts de la cuve 2 par la loi $\mathcal{P}a(4.33,2)$.
+
+
+Pour la cuve 3 :
+La loi $\mathcal{P}a(a,b)$ n'est en revanche pas applicable pour modéliser les défauts de la cuve 3 (exercice 1, question 5). Au vu de l'allure de l'histogramme des données de la cuve 3, on peut penser à modéliser ces données par une loi normale. On vérifie la pertinence de ce choix à l'aide d'un graphe de probabiltés pour la loi normale. Le nuage de points est donc : $(x_i*,~ \phi^{-1}(i/n))$.
+
+```{r echo=FALSE}
+cuve3 = cuves[[3]]
+n3 = length(cuve3)
+plot(sort(cuve3[1:(n3-1)]), qnorm(seq(1:(n3-1))/n3))
+reg <- lm(qnorm(seq(1:(n3-1))/n3) ~ sort(cuve3[1:(n3-1)]))
+abline(reg)
+```
+
+On voit que l'on obtient une droite. La loi normale semble donc adaptée pour modéliser les défauts des données de cuve3. Utilisons l'estimateur des moments pour déterminer les paramètres de cette loi normale.
+
+```{r echo=FALSE}
+m_cuve3 <- mean(cuve3)
+m_cuve3
+var_cuve3 <- var(cuve3)
+var_cuve3
+```
+
+Par conséquent, on modélisera les défauts de la cuve 3 par une loi normale de paramètres : $\mathcal{N}(2.82,~0.17)$
+
+
+
+\subsection*{Question 2 - a}
+Il s'agit d'un test d'hypothèse. Si on note $X = X_i$ la variable aléatoire associé à la taille du défaut dans la cuve. 
+On prend $H_0 : E[X] \geq 5$ et $H_1 : E[X] < 5$, car l'erreur de première espèce est de décider que les défauts ne sont pas dangereux alors qu'elles le sont, ce qui est plus grave que de décider que les défauts sont dangereux alors qu'ils ne sont pas.
+
+On se rapporte encore une fois à la variable aléatoire $Y = ln(\frac{X}{2})$ avec $Y \sim exp(a)$. Puisque $E[X] = \frac{2a}{a-1}$, les hypothèses deviennent : $H_0 : a \leq \frac{5}{3}$ et $H_1 : a > \frac{5}{3}$. On détermine donc la région critique d'une manière presque identique à celle de l'exo 3 Fiche 5, en utilisant la fonction pivotale $2a \sum_{i=1}^{n} Y_i \sim \chi_{2n}$
+On pose
+$$
+W = \{ \hat{a}_n  > l_{\alpha} \} \\
+\begin{aligned}
+\alpha &= sup_{a \leq \frac{5}{3}} P(\hat{a}_n  > l_{\alpha} , a) \\
+&= sup_{a \leq \frac{5}{3}} P(\frac{n}{\sum_{i=1}^{n} Y_i} > l_{\alpha}, a) \\
+&= sup_{a \leq \frac{5}{3}} P(2a\sum_{i=1}^{n} Y_i < \frac{2an}{l_{\alpha}})\\
+&= sup_{a \leq \frac{5}{3}} F_{{\chi}_{2n}}(\frac{2an}{l_{\alpha}}) \\
+&= F_{{\chi}_{2n}} (\frac{10}{3}.\frac{n}{l_{\alpha}})
+\end{aligned}
+$$
+Ce qui donne $l_{\alpha} = \frac{10}{3} \frac{n}{F_{{\chi}_{2n}}^{-1}(\alpha)}$, et enfin $W = \{ \hat{a}_n > \frac{10}{3}\frac{n}{F_{{\chi}_{2n}}^{-1}(\alpha)} \}$.
+
+
+Vérifions l'affirmation du constructeur pour la cuve 1 et 2 qui suivent la loi Pa(a,2):
+```{r echo=FALSE}
+alpha = 0.05
+for (i in c(1,2)){
+  borne = (10/3)*(length(cuves[[i]])/qchisq(alpha, 2*length(cuves[[i]])))
+  cat("la borne de la région critique pour la cuve", i, "est :",  borne, "\n")
+}
+```
+
+
+Et on rappelle les estimations (méthode EMV) pour les cuve 1 et 2:
+```{r echo=FALSE}
+for (i in c(1,2)){
+  a_emv <- 1/(mean(log(cuves[[i]]/2)))
+  cat("cuve", i, " : ", a_emv, "\n")
+}
+```
+On déduit que l'affirmation du constructeur est vraie.
+
+
+
+\subsection*{Question 2 - b}
+
+On étudie ici un test d'hypothèse sur une proportion.
+
+On a $p_0 = 0.05$, et on prend $H_0 :p \geq p_0$ et $H_1 : p < p_0$ pour les mêmes raisons de la question 2-a. 
+On a donc la région critique :
+
+$$
+W =\left \{
+      \begin{array}{ccc}
+      \frac{t - np_0}{\sqrt{np_0(1-p_0)}} < -u_{2\alpha}
+      \end{array}
+    \right \}
+$$
+
+
+On essaie de voir si les observations sont dans la région critique pour un $\alpha = 5\%$
+```{r echo=FALSE}
+alpha <- 0.05
+p0 <- 0.05
+cuve_b = cuves[[2]]>5
+n <- length(cuve_b)
+t <- sum(cuve_b)
+x1 <- (t-n*p0)/sqrt(n*p0*(1-p0))
+x2 <- -qnorm(1-alpha)
+cat("x1 : ", x1, "x2 : ", x2)
+```
+La réponse est bien évidemment non.
+
+
+Calculons désormais la p-valeur:
+```{r echo=FALSE}
+cuve_b = cuves[[1]]>=5
+binom.test(sum(cuve_b), length(cuve_b) , p=0.05, alternative="less")
+```
+
+```{r echo=FALSE}
+cuve_b = cuves[[2]]>=5
+binom.test(sum(cuve_b), length(cuve_b) , p=0.05, alternative="less")
+```
+
+Ainsi les p-valeurs des cuves 1 et 2 sont respectivement 0.81 et 0.64, ce qui est trop élevé. 
+
+On ne peut pas conclure si l'affirmation du constructeur est vraie en utilisant seulement l'appareil B.
+
+
+
+\section{4- Conclusion}
+
+Finalement ce TP apporte une vision complémentaire à celles vues en cours et en TD pour ce qui est des méthodes statistiques de base. En ne concentrant l’étude que sur un problème en particulier il nous est possible de déployer un éventail fourni de méthodes vues ou non dans le cours ou en TD. Par exemple la simulation d’échantillons comme elle est présentée dans la partie 2 (questions 2 et 3) nous a intéressé. Aussi nous avons apporté une grande importance au côté concret des statistiques c’est pourquoi nous avons le plus possible mis en avant nos analyses graphiques et nos graphes en tous genre.
+
+Pour ce qui est de l’organisation dans le groupe une bonne harmonie s’est dégagé de notre travail. Nous avons traité les parties théoriques chacun de notre côté et nous nous sommes réunis pour les parties en R afin d’enrichir au maximum nos compréhensions respectives du problème.
+
+Pour finir l’analyse et le travail qui a été effectué est évidemment non-exhaustif. Nous pensons que pour réellement obtenir plus d’information il nous faudrait plus de données pour éventuellement ajuster plus précisément le modèle. On pourrait aussi penser à traiter ce problème comme un problème de classification et entraîner un réseau de neurones sur les données.
+
+
+
+
+
